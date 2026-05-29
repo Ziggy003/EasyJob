@@ -70,7 +70,13 @@ class BiscateRepository(private val appDao: AppDao) {
                     name = "Mário Santos",
                     contact = "+244 931 445 221",
                     walletCredits = 50,
-                    selectedCategory = "Todos"
+                    selectedCategory = "Todos",
+                    isLoggedIn = false,
+                    password = "123456",
+                    bairro = "Talatona",
+                    experiencia = "Contratante frequente desde 2024. Já publicou mais de 12 biscates para reformas residenciais e pintura em Talatona.",
+                    competencias = "Gestão de equipas de empreiteiros, Orçamentista de obras civis",
+                    provasTrabalho = "Reforma do WC principal do escritório da Samba|Varanda decorada no condomínio Jasmim"
                 )
             )
         }
@@ -93,7 +99,10 @@ class BiscateRepository(private val appDao: AppDao) {
                     contact = "+244 923 111 001",
                     verified = true,
                     ratingAvg = 4.8f,
-                    ratingCount = 34
+                    ratingCount = 34,
+                    experiencia = "Pintor independente desde 2015 em Luanda. Liderou a pintura completa de 4 pavilhões comerciais em Cacuaco e repintou fachadas externas de moradias de luxo em Talatona. Especialista em texturas rústicas, cimento queimado e aplicação de gesso cartonado satinado.",
+                    competencias = "Mestre em texturizados premium, Gestão de prazos rigorosos, Organização e isolamento protetor de mobiliário, Pintor certificado de tintas epóxi.",
+                    provasTrabalho = "Mural decorativo em sala de estar moderna|Pintura em epóxi de alta resistência em garagem residencial|Acabamento acetinado premium em T3 no centro urbano"
                 ),
                 Biscateiro(
                     name = "Rosa Catarina",
@@ -109,7 +118,10 @@ class BiscateRepository(private val appDao: AppDao) {
                     contact = "+244 923 222 002",
                     verified = true,
                     ratingAvg = 4.9f,
-                    ratingCount = 41
+                    ratingCount = 41,
+                    experiencia = "Trabalha com equipa própria de 3 funcionárias especializadas em limpezas profundas pós-obra e pré-mudança na centralidade do Kilamba e Sequele. 6 anos de carteira ativa.",
+                    competencias = "Remoção especializada de resíduos de cimento e gesso, Higienização a vapor de sofás e tapetes, Uso seguro de produtos químicos biodegradáveis.",
+                    provasTrabalho = "Limpeza pós-obra de moradia T5 no Kilamba (Espelhos e vidros impecáveis)|Limpeza profunda de escritório corporativo de 300m2 em Talatona"
                 ),
                 Biscateiro(
                     name = "António Feliciano",
@@ -125,7 +137,10 @@ class BiscateRepository(private val appDao: AppDao) {
                     contact = "+244 923 333 003",
                     verified = false,
                     ratingAvg = 4.7f,
-                    ratingCount = 21
+                    ratingCount = 21,
+                    experiencia = "Formado pelo Instituto Médio Industrial de Luanda (IMIL). Técnico de manutenção elétrica residencial experiente em instalação de geradores domésticos e conversores solares.",
+                    competencias = "Montagem de quadros elétricos trifásicos de alta segurança, Diagnóstico ágil de fugas de corrente, Configuração de luminárias automatizadas em gesso.",
+                    provasTrabalho = "Instalação de quadro elétrico duplex com disjuntores inteligentes|Montagem de fiação embutida e tomadas de embutir em cozinha gourmet"
                 ),
                 Biscateiro(
                     name = "Pedro Luvualu",
@@ -141,7 +156,10 @@ class BiscateRepository(private val appDao: AppDao) {
                     contact = "+244 923 444 004",
                     verified = true,
                     ratingAvg = 4.8f,
-                    ratingCount = 28
+                    ratingCount = 28,
+                    experiencia = "Mestre pedreiro com 15 anos de obras. Sólido conhecimento de leitura de plantas civis e cálculo exato de materiais para evitar desperdícios em cimento e ferro.",
+                    competencias = "Assentamento milimétrico de porcelanato de grande formato, Nivelamento perfeito de concreto e betonilhas, Elevação estrutural de sapatas e cintas.",
+                    provasTrabalho = "Colocação de revestimento porcelanato 120x60 em salão comercial|Construção de escadaria helicoidal armada em cimento bruto"
                 ),
                 Biscateiro(
                     name = "Filomena Neto",
@@ -157,7 +175,10 @@ class BiscateRepository(private val appDao: AppDao) {
                     contact = "+244 923 555 005",
                     verified = true,
                     ratingAvg = 4.6f,
-                    ratingCount = 19
+                    ratingCount = 19,
+                    experiencia = "Presta assessoria técnica em sistemas hidráulicos prediais e domésticos. Especializada em reparação de fugas invisíveis com detector acústico de infiltrações.",
+                    competencias = "Fusão térmica de tubulações PPR reforçadas, Instalação completa de bombas de captação e reservatórios d’água, Desentupimento mecanizado sem quebra de azulejos.",
+                    provasTrabalho = "Tubulação completa instalada em PPR para água quente e fria|Montagem hidráulica de coluna de chuveiro moderno e WC suspenso"
                 ),
                 Biscateiro(
                     name = "Domingos Carvalho",
@@ -173,7 +194,10 @@ class BiscateRepository(private val appDao: AppDao) {
                     contact = "+244 923 666 006",
                     verified = false,
                     ratingAvg = 4.8f,
-                    ratingCount = 15
+                    ratingCount = 15,
+                    experiencia = "Tradição familiar na marcenaria tradicional. Produz decks de madeira tratada para piscinas e monta roupeiros de embutir modernos em MDF revestido.",
+                    competencias = "Restauro de madeiras nobres africanas (Mussivi, Girassol), Cortes finos e acabamento liso em poliuretano, Fabrico de mobília rústica personalizada.",
+                    provasTrabalho = "Deck de madeira maciça tratada montado ao redor de piscina|Guarda-fatos sob medida de 4 portas de correr em MDF amadeirado"
                 )
             )
 

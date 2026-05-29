@@ -37,7 +37,10 @@ data class Biscateiro(
     val contact: String,
     val verified: Boolean = false,
     val ratingAvg: Float = 4.8f,
-    val ratingCount: Int = 12
+    val ratingCount: Int = 12,
+    val experiencia: String = "",
+    val competencias: String = "",
+    val provasTrabalho: String = "" // Delimitada por "|" para guardar provas de trabalho com descrição ou links de fotografias
 )
 
 @Entity(tableName = "candidaturas")
@@ -70,5 +73,11 @@ data class UserSession(
     val name: String = "João Baptista",
     val contact: String = "+244 923 456 789",
     val walletCredits: Int = 50, // Initial free credits gift!
-    val selectedCategory: String = "Todos"
+    val selectedCategory: String = "Todos",
+    val isLoggedIn: Boolean = false,
+    val password: String = "",
+    val bairro: String = "Talatona",
+    val experiencia: String = "",
+    val competencias: String = "",
+    val provasTrabalho: String = ""
 )

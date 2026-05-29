@@ -114,9 +114,17 @@ fun BiscateApp(viewModel: BiscateViewModel) {
     val walletCredits = session?.walletCredits ?: 0
     val currentUserName = session?.name ?: "Mário Santos"
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
+    if (session == null || !session!!.isLoggedIn) {
+        BiscateAuthScreen(
+            viewModel = viewModel,
+            onAccessAsGuest = {
+                viewModel.login("+244 931 445 221", "123456", {}, {})
+            }
+        )
+    } else {
+        Scaffold(
+            topBar = {
+                TopAppBar(
                 title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -1284,20 +1292,20 @@ fun BiscateApp(viewModel: BiscateViewModel) {
         val worker = selectedBiscateiroForDetail!!
         Dialog(onDismissRequest = { selectedBiscateiroForDetail = null }) {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Branco),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(16.dp),
                 border = BorderStroke(2.dp, Laranja),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(vertical = 12.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .padding(20.dp)
                         .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Header Card worker bio
+                    // Profile Header Block
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -1305,7 +1313,7 @@ fun BiscateApp(viewModel: BiscateViewModel) {
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(64.dp)
+                                .size(68.dp)
                                 .clip(CircleShape)
                                 .background(Color(android.graphics.Color.parseColor(worker.bgColor))),
                             contentAlignment = Alignment.Center
@@ -1313,16 +1321,21 @@ fun BiscateApp(viewModel: BiscateViewModel) {
                             Text(
                                 text = worker.initials,
                                 color = Color(android.graphics.Color.parseColor(worker.textColor)),
-                                fontSize = 22.sp,
+                                fontSize = 24.sp,
                                 fontWeight = FontWeight.Black
                             )
                         }
 
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(worker.name, fontWeight = FontWeight.Black, fontSize = 18.sp, color = Terra)
+                                Text(
+                                    text = worker.name,
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 18.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                                 if (worker.verified) {
-                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
                                     Icon(
                                         imageVector = Icons.Default.Verified,
                                         contentDescription = "Identidade Verificada",
@@ -1331,13 +1344,24 @@ fun BiscateApp(viewModel: BiscateViewModel) {
                                     )
                                 }
                             }
-                            Text(worker.role, fontSize = 12.sp, color = TerraClaro, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                text = worker.role,
+                                fontSize = 13.sp,
+                                color = Laranja,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Contacto: ${worker.contact}",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                            )
                         }
                     }
 
-                    // Stats indicators
+                    // Key Stats Card
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Creme)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
                             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -1352,10 +1376,11 @@ fun BiscateApp(viewModel: BiscateViewModel) {
                                     Text(
                                         text = String.format("%.1f", worker.ratingAvg),
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
-                                Text("reputação", fontSize = 10.sp, color = TerraClaro)
+                                Text("reputação", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
 
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1363,9 +1388,9 @@ fun BiscateApp(viewModel: BiscateViewModel) {
                                     text = "${worker.ratingCount}+",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
-                                    color = TerraClaro
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Text("bicos feitos", fontSize = 10.sp, color = TerraClaro)
+                                Text("bicos feitos", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
 
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1373,42 +1398,171 @@ fun BiscateApp(viewModel: BiscateViewModel) {
                                     text = worker.bairro,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
-                                    color = TerraClaro
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Text("zona atuação", fontSize = 10.sp, color = TerraClaro)
+                                Text("zona atuação", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
 
+                    // Section 1: Descrição Geral (Resumo)
                     Column {
-                        Text("Descrição do Serviço:", fontSize = 12.sp, color = Areia, fontWeight = FontWeight.Bold)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Icon(Icons.Default.Notes, contentDescription = null, tint = Laranja, modifier = Modifier.size(16.dp))
+                            Text("Resumo do Serviço:", fontSize = 12.sp, color = Laranja, fontWeight = FontWeight.Bold)
+                        }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = worker.desc,
                             fontSize = 13.sp,
-                            color = TerraClaro,
+                            color = MaterialTheme.colorScheme.onSurface,
                             lineHeight = 18.sp
                         )
                     }
 
-                    // Skills Tags List
-                    FlowRowWithCustom(
-                        tagsList = worker.tags.split(",")
-                    )
+                    // Section 2: Experiência Detalhada (if provided)
+                    if (worker.experiencia.isNotBlank()) {
+                        Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Icon(Icons.Default.History, contentDescription = null, tint = Laranja, modifier = Modifier.size(16.dp))
+                                Text("Experiência Profissional Detalhada:", fontSize = 12.sp, color = Laranja, fontWeight = FontWeight.Bold)
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = worker.experiencia,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                lineHeight = 18.sp
+                            )
+                        }
+                    }
 
-                    Divider(color = CremeEscuro)
+                    // Section 3: Competências Principais
+                    if (worker.competencias.isNotBlank()) {
+                        Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Icon(Icons.Default.VerifiedUser, contentDescription = null, tint = Laranja, modifier = Modifier.size(16.dp))
+                                Text("Competências & Diferenciais:", fontSize = 12.sp, color = Laranja, fontWeight = FontWeight.Bold)
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            
+                            val bullets = worker.competencias.split(",")
+                            bullets.forEach { bullet ->
+                                if (bullet.trim().isNotBlank()) {
+                                    Row(
+                                        verticalAlignment = Alignment.Top,
+                                        modifier = Modifier.padding(vertical = 2.dp)
+                                    ) {
+                                        Text("• ", fontWeight = FontWeight.Bold, color = Laranja, fontSize = 14.sp)
+                                        Text(
+                                            text = bullet.trim(),
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            lineHeight = 16.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
 
+                    // Section 4: Habilidades (Tags)
+                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Icon(Icons.Default.Construction, contentDescription = null, tint = Laranja, modifier = Modifier.size(16.dp))
+                            Text("Habilidades Tecnológicas / Áreas:", fontSize = 12.sp, color = Laranja, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        FlowRowWithCustom(
+                            tagsList = worker.tags.split(",")
+                        )
+                    }
+
+                    // Section 5: PROVAS DE TRABALHOS (PORTFÓLIO DE SUCESSO)
+                    if (worker.provasTrabalho.isNotBlank()) {
+                        Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Icon(Icons.Default.FactCheck, contentDescription = null, tint = Laranja, modifier = Modifier.size(16.dp))
+                                Text("Provas de Trabalho Concluídos (Portfólio):", fontSize = 12.sp, color = Laranja, fontWeight = FontWeight.Bold)
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            val projects = worker.provasTrabalho.split("|")
+                            projects.forEachIndexed { index, project ->
+                                if (project.trim().isNotBlank()) {
+                                    Card(
+                                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)),
+                                        border = BorderStroke(1.dp, Laranja.copy(alpha = 0.15f)),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(10.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(36.dp)
+                                                    .clip(CircleShape)
+                                                    .background(Laranja.copy(alpha = 0.15f)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.CheckCircle,
+                                                    contentDescription = "Trabalho Verificado",
+                                                    tint = Laranja,
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                Text(
+                                                    text = "Trabalho #${index + 1}",
+                                                    fontSize = 10.sp,
+                                                    color = Laranja,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = project.trim(),
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                    lineHeight = 15.sp
+                                                )
+                                                Text(
+                                                    text = "✓ Verificado física e contratualmente em Angola",
+                                                    fontSize = 9.sp,
+                                                    color = Verde,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Pricing Row
+                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Preço de Referência:", fontSize = 12.sp, color = TerraClaro, fontWeight = FontWeight.Bold)
+                        Text("Preço de Referência:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                         Text(worker.rate, fontSize = 16.sp, color = Laranja, fontWeight = FontWeight.Black)
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
+                    // Buttons
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -1426,17 +1580,17 @@ fun BiscateApp(viewModel: BiscateViewModel) {
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 Icon(Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Text("Telefonar / Sms", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("Telefonar / Sms", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             }
                         }
 
                         Button(
                             onClick = { selectedBiscateiroForDetail = null },
-                            colors = ButtonDefaults.buttonColors(containerColor = TerraClaro),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f)),
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Fechar Perfil", fontSize = 12.sp)
+                            Text("Fechar Perfil", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
@@ -1448,32 +1602,60 @@ fun BiscateApp(viewModel: BiscateViewModel) {
     if (showProfileDialog) {
         var profileName by remember { mutableStateOf(session?.name ?: "") }
         var profileContact by remember { mutableStateOf(session?.contact ?: "") }
+        var profileBairro by remember { mutableStateOf(session?.bairro ?: "Talatona") }
+        var profileExperience by remember { mutableStateOf(session?.experiencia ?: "") }
+        var profileCompetencias by remember { mutableStateOf(session?.competencias ?: "") }
+        var profileProvasTrabalho by remember { mutableStateOf(session?.provasTrabalho ?: "") }
+
+        var isBairroDropdownExpanded by remember { mutableStateOf(false) }
+        val bairrosList = listOf("Talatona", "Kilamba", "Viana", "Cazenga", "Sambizanga", "Maianga", "Cacuaco", "Samba")
 
         Dialog(onDismissRequest = { showProfileDialog = false }) {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Branco),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(16.dp),
                 border = BorderStroke(2.dp, Laranja),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(vertical = 12.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Gerenciar Meu Perfil",
+                            fontWeight = FontWeight.Black,
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Box(
+                            modifier = Modifier
+                                .background(Laranja.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = session?.userRole ?: "CLIENTE",
+                                fontWeight = FontWeight.Bold,
+                                color = Laranja,
+                                fontSize = 10.sp
+                            )
+                        }
+                    }
+
                     Text(
-                        text = "Gerenciar Meu Perfil",
-                        fontWeight = FontWeight.Black,
-                        fontSize = 18.sp,
-                        color = Terra
+                        text = "Gerencie seus dados públicos exibidos no directório e ofertas de trabalho biscate.",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Text(
-                        text = "Esses dados serão exibidos quando você publicar tarefas ou enviar lances.",
-                        fontSize = 12.sp,
-                        color = TerraClaro
-                    )
-                    Divider(color = CremeEscuro)
+                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
 
                     OutlinedTextField(
                         value = profileName,
@@ -1493,35 +1675,149 @@ fun BiscateApp(viewModel: BiscateViewModel) {
                             .testTag("contact_field")
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    // BAIRRO SELECTOR DROPDOWN
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        ExposedDropdownMenuBox(
+                            expanded = isBairroDropdownExpanded,
+                            onExpandedChange = { isBairroDropdownExpanded = !isBairroDropdownExpanded }
+                        ) {
+                            OutlinedTextField(
+                                value = "Bairro: $profileBairro",
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isBairroDropdownExpanded) },
+                                modifier = Modifier.fillMaxWidth().menuAnchor()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = isBairroDropdownExpanded,
+                                onDismissRequest = { isBairroDropdownExpanded = false }
+                            ) {
+                                bairrosList.forEach { b ->
+                                    DropdownMenuItem(
+                                        text = { Text(b) },
+                                        onClick = {
+                                            profileBairro = b
+                                            isBairroDropdownExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
 
-                    Row(
+                    // Worker Specific Detailed Settings
+                    if (session?.userRole == "PRESTADOR") {
+                        Text(
+                            text = "Credenciais do Prestador",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            color = Laranja,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+
+                        OutlinedTextField(
+                            value = profileExperience,
+                            onValueChange = { profileExperience = it },
+                            label = { Text("Experiência & Anos de Carreira") },
+                            placeholder = { Text("Pintor residencial com 6 anos de experiência em Angola...") },
+                            modifier = Modifier.fillMaxWidth(),
+                            minLines = 2,
+                            maxLines = 4
+                        )
+
+                        OutlinedTextField(
+                            value = profileCompetencias,
+                            onValueChange = { profileCompetencias = it },
+                            label = { Text("Competências Principais (Separadas por vírgula)") },
+                            placeholder = { Text("Pontualidade, Especialista em Drywall, Lixamento perfeito") },
+                            modifier = Modifier.fillMaxWidth(),
+                            minLines = 1,
+                            maxLines = 3
+                        )
+
+                        OutlinedTextField(
+                            value = profileProvasTrabalho,
+                            onValueChange = { profileProvasTrabalho = it },
+                            label = { Text("Trabalhos Concluídos / Portfólio (Separados por '|')") },
+                            placeholder = { Text("Reforma de WC no Kilamba|Pintura externa de vivenda em Talatona") },
+                            modifier = Modifier.fillMaxWidth(),
+                            minLines = 1,
+                            maxLines = 3
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+
+                    // Buttons Layout Including Logout Action
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        TextButton(onClick = { showProfileDialog = false }) {
-                            Text("Cancelar", color = TerraClaro)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            TextButton(
+                                onClick = { showProfileDialog = false },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Voltar", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+
+                            Button(
+                                onClick = {
+                                    if (profileName.trim().isNotEmpty() && profileContact.trim().isNotEmpty()) {
+                                        viewModel.updateProfile(
+                                            name = profileName,
+                                            contact = profileContact,
+                                            bairro = profileBairro,
+                                            experiencia = profileExperience,
+                                            competencias = profileCompetencias,
+                                            provasTrabalho = profileProvasTrabalho
+                                        )
+                                        showProfileDialog = false
+                                        Toast.makeText(context, "Perfil guardado com sucesso!", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Nome e Contacto são obrigatórios!", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Laranja),
+                                modifier = Modifier
+                                    .weight(1.5f)
+                                    .testTag("save_profile_btn")
+                            ) {
+                                Text("Gravar", fontWeight = FontWeight.Bold, color = Branco)
+                            }
                         }
 
-                        Button(
+                        // Logout interactive button
+                        OutlinedButton(
                             onClick = {
-                                if (profileName.trim().isNotEmpty() && profileContact.trim().isNotEmpty()) {
-                                    viewModel.updateProfile(profileName, profileContact)
-                                    showProfileDialog = false
-                                    Toast.makeText(context, "Perfil guardado com sucesso!", Toast.LENGTH_SHORT).show()
-                                } else {
-                                    Toast.makeText(context, "Campos vazios não permitidos!", Toast.LENGTH_SHORT).show()
-                                }
+                                viewModel.logout()
+                                showProfileDialog = false
+                                Toast.makeText(context, "Sessão terminada. Volte sempre!", Toast.LENGTH_SHORT).show()
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Laranja),
-                            modifier = Modifier.testTag("save_profile_btn")
+                            border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.6f)),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("logout_btn"),
+                            shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("Gravar Perfil", fontWeight = FontWeight.Bold, color = Branco)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Red)
+                                Text("Terminar Sessão (Sair)", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.Red)
+                            }
                         }
                     }
                 }
             }
         }
+    }
     }
 }
 
