@@ -1,0 +1,6 @@
+{
+  "name": "Biscate.ao",
+  "description": "Plataforma profissional de trabalho informal e serviços de proximidade em Angola.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
