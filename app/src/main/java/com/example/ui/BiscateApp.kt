@@ -2755,6 +2755,9 @@ fun PilotTab(
     biscateirosCount: Int
 ) {
     val context = LocalContext.current
+    val apiLogs by viewModel.apiLogs.collectAsStateWithLifecycle()
+    var simLatency by remember { mutableStateOf(300) } // simulated response delay
+    var isRecordingLogs by remember { mutableStateOf(true) }
 
     Column(
         modifier = Modifier
@@ -2763,85 +2766,244 @@ fun PilotTab(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // High fidelity header for Server & Backend central
         Card(
-            colors = CardDefaults.cardColors(containerColor = Branco),
-            border = BorderStroke(1.dp, CremeEscuro)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
+            modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "ESTRATÉGIA GO-TO-MARKET ANGOLA",
-                    fontSize = 10.sp,
-                    color = Laranja,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(if (isRecordingLogs) Verde else Areia, CircleShape)
+                    )
+                    Text(
+                        text = "CONSOLE DE BASTIDORES & BANCO DE DADOS (SQLite)",
+                        fontSize = 10.sp,
+                        color = Laranja,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Lançamento Piloto Luanda",
-                    color = Terra,
+                    text = "Biscate.ao Backend Server Simulation",
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Black,
-                    fontSize = 16.sp
+                    fontSize = 18.sp
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "O Biscate.ao planeia a sua validação inicial em Luanda (Cazenga, Talatona, Kilamba, Viana e Maianga) nas próximas semanas " +
-                            "através de parcerias locais com administrações de bairro, panfletagem focalizada em depósitos de materiais de construção e divulgação em redes sociais comunitárias.\n\n" +
-                            "Meta piloto: obter 1.000 usuários ativos e 500 bicos concluídos com sucesso no primeiro semestre.",
+                    text = "Este painel conecta-te às entranhas do nosso ecossistema em Luanda. Aqui podes avaliar o tráfego simulado, latência e interagir diretamente com o banco de dados Room (SQLite) persistido no dispositivo.",
                     fontSize = 12.sp,
-                    color = TerraClaro,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 16.sp
                 )
             }
         }
 
-        // Checklist guidelines indicators
+        // Live Server Terminal Console
         Card(
-            colors = CardDefaults.cardColors(containerColor = Branco),
-            border = BorderStroke(1.dp, CremeEscuro)
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF0F141C)), // Tech Navy Slate
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, Color(0xFF1E293B)),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = "CONFIANÇA & CONTROLOS DE SEGURANÇA",
-                    fontSize = 10.sp,
-                    color = Areia,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
+            Column(modifier = Modifier.padding(14.dp)) {
+                // Console bar
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Box(modifier = Modifier.size(10.dp).background(Color(0xFFEF4444), CircleShape))
+                        Box(modifier = Modifier.size(10.dp).background(Color(0xFFF59E0B), CircleShape))
+                        Box(modifier = Modifier.size(10.dp).background(Color(0xFF10B981), CircleShape))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "terminal://biscate.ao:8080/logs",
+                            color = Color(0xFF94A3B8),
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 11.sp
+                        )
+                    }
+                    
+                    TextButton(
+                        onClick = { viewModel.clearApiLogs() },
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                        modifier = Modifier.height(28.dp)
+                    ) {
+                        Text("Limpar", color = Laranja, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
 
-                SecurityItemRow(title = "Verificação de Identidade Básica", desc = "Upload simples de BI para selo de Confiança.")
-                SecurityItemRow(title = "Políticas Anti-Fraude e Moderação", desc = "Remoção de comentários ofensivos e perfis clonados.")
-                SecurityItemRow(title = "Avaliações Autênticas e Verificadas", desc = "Apenas clientes que realmente contrataram avaliam.")
+                // Scrollable Console area
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .background(Color(0xFF07090E), RoundedCornerShape(8.dp))
+                        .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(8.dp))
+                        .padding(8.dp)
+                ) {
+                    if (apiLogs.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "Console vazia. Realize ações na aplicação\npara gerar logs de requisição REST API.",
+                                color = Color(0xFF475569),
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 11.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(apiLogs.size) { index ->
+                                val log = apiLogs[index]
+                                val logColor = when {
+                                    log.contains("POST") -> Color(0xFFF59E0B) // Amber
+                                    log.contains("GET") -> Color(0xFF10B981) // Emerald
+                                    log.contains("SYSTEM") || log.contains("CONNECTED") -> Color(0xFF38BDF8) // Sky
+                                    else -> Color(0xFFE2E8F0) // Grayish/White
+                                }
+                                Text(
+                                    text = log,
+                                    color = logColor,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 10.sp,
+                                    lineHeight = 14.sp
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        // Simulated admin control box
+        // Live Database Performance Adjustments
         Card(
-            colors = CardDefaults.cardColors(containerColor = Terra),
-            shape = RoundedCornerShape(12.dp)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    text = "PAINEL ADMINISTRADOR SIMULADO (SANDBOX)",
+                    text = "CONFIGURAÇÃO INTEGRADA DE REDE & LATÊNCIA",
                     color = Areia,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
                 )
-                Divider(color = TerraClaro)
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("Simulação de Latência HTTP:", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text("Latência média de rede em Luanda", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .background(Laranja.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text("${simLatency}ms", color = Laranja, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                }
 
+                // Smooth latency row selector buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(100, 300, 900, 2000).forEach { latency ->
+                        val isSelected = simLatency == latency
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected) Laranja else MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, if (isSelected) Laranja else MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(36.dp)
+                                .clickable {
+                                    simLatency = latency
+                                    viewModel.logApiCall("CONFIG", "Simulated Network Delay", "UPDATED", "Set to ${latency}ms latency")
+                                    Toast.makeText(context, "Latência de rede definida para ${latency}ms", Toast.LENGTH_SHORT).show()
+                                }
+                        ) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = when(latency) {
+                                        100 -> "Fibra (100ms)"
+                                        300 -> "UNITEL 3G"
+                                        900 -> "Movicel 4G"
+                                        else -> "Sombra (2s)"
+                                    },
+                                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 10.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // SQLite Persistent Database Sandbox Admin Metrics & Actions
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.inverseOnSurface),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    text = "Métricas Ativas de Banco Room SQLite:",
-                    color = Creme,
-                    fontSize = 12.sp
+                    text = "ADMINISTRAÇÃO DO BANCO SQLite LOCAL",
+                    color = Laranja,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
                 )
+                
+                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Total Pedidos na Tabela:", color = Creme, fontSize = 12.sp)
-                    Text("$tasksCount", color = Laranja, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(Icons.Default.AccountBalanceWallet, contentDescription = null, tint = Laranja, modifier = Modifier.size(16.dp))
+                        Text("Tabela 'job_tasks' (Pedidos):", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    }
+                    Text("$tasksCount registos", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
 
                 Row(
@@ -2849,11 +3011,17 @@ fun PilotTab(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Total Biscateiros Cadastrados:", color = Creme, fontSize = 12.sp)
-                    Text("$biscateirosCount", color = Laranja, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(Icons.Default.People, contentDescription = null, tint = Laranja, modifier = Modifier.size(16.dp))
+                        Text("Tabela 'biscateiros' (Serviços):", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    }
+                    Text("$biscateirosCount registos", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -2862,20 +3030,42 @@ fun PilotTab(
                     Button(
                         onClick = {
                             viewModel.addCredits(100)
-                            Toast.makeText(context, "Bónus Admin: +100 créditos adicionados!", Toast.LENGTH_SHORT).show()
+                            viewModel.logApiCall("POST", "/api/v1/wallet/credit", "200 OK", "{'amount': 100, 'source': 'admin_simulate'}")
+                            Toast.makeText(context, "Bónus Admin: +100 créditos adicionados na carteira!", Toast.LENGTH_SHORT).show()
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Laranja)
+                        colors = ButtonDefaults.buttonColors(containerColor = Laranja),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
                     ) {
-                        Text("Simular +100 Lds", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp), tint = Color.White)
+                            Text("Simular +100 Crds", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
 
                     Button(
                         onClick = {
-                            Toast.makeText(context, "Sincronização forçada com SQLite realizada com êxito!", Toast.LENGTH_SHORT).show()
+                            viewModel.logApiCall("POST", "/api/v1/database/vacuum", "200 Success", "SQL: VACUUM; REINDEX;")
+                            Toast.makeText(context, "Sincronização manual e VACUUM SQLite concluídos!", Toast.LENGTH_SHORT).show()
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = TerraClaro)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
                     ) {
-                        Text("Forçar Sync Room", fontSize = 11.sp)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onPrimary)
+                            Text("Reorganizar Banco", fontSize = 10.sp)
+                        }
                     }
                 }
             }

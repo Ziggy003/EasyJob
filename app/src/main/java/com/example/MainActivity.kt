@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.example.ui.BiscateApp
 import com.example.ui.BiscateViewModel
 import com.example.ui.theme.MyApplicationTheme
@@ -16,7 +18,8 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
     setContent {
-      MyApplicationTheme {
+      val isDarkTheme by viewModel.isDarkTheme.collectAsState()
+      MyApplicationTheme(darkTheme = isDarkTheme) {
         BiscateApp(viewModel = viewModel)
       }
     }

@@ -94,9 +94,29 @@ class BiscateViewModel(application: Application) : AndroidViewModel(application)
         _notifications.value = emptyList()
     }
 
+    private val _apiLogs = MutableStateFlow<List<String>>(emptyList())
+    val apiLogs = _apiLogs.asStateFlow()
+
+    fun logApiCall(method: String, endpoint: String, status: String, payload: String = "") {
+        val formatter = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault())
+        val timeStr = formatter.format(java.util.Date())
+        val log = "[$timeStr] $method $endpoint -> $status $payload"
+        _apiLogs.update { list -> (listOf(log) + list).take(30) }
+    }
+
+    fun clearApiLogs() {
+        _apiLogs.value = emptyList()
+    }
+
     init {
         val database = AppDatabase.getDatabase(application)
         repository = BiscateRepository(database.appDao())
+
+        // Preseed live server HTTP mock logs
+        logApiCall("SYSTEM", "SQLite Database Connected", "CONNECTED", "Version: 2, File: biscate_database")
+        logApiCall("SYSTEM", "API Gateway Listening", "READY", "Port: Http/8080 SSL Active")
+        logApiCall("GET", "/api/v1/meta/bairros", "200 OK", "['Cazenga', 'Talatona', 'Kilamba', 'Viana', 'Maianga']")
+        logApiCall("GET", "/api/v1/jobs/available", "200 OK", "Fetched 15 jobs")
 
         // Seed initial notifications to show on first access
         addNotification(
@@ -174,7 +194,9 @@ class BiscateViewModel(application: Application) : AndroidViewModel(application)
                 clientName = authorName,
                 clientContact = authorContact
             )
-            repository.insertTask(newTask)
+            val insertedId = repository.insertTask(newTask)
+            
+            logApiCall("POST", "/api/v1/jobs/publish", "201 Created", "{'id': $insertedId, 'title': '$title', 'budget': ${budget.toInt()}, 'location': '$location'}")
             
             addNotification(
                 title = "Pedido Publicado 📝",
@@ -217,6 +239,8 @@ class BiscateViewModel(application: Application) : AndroidViewModel(application)
             )
             repository.insertCandidatura(proposal)
             
+            logApiCall("POST", "/api/v1/jobs/apply", "201 Created", "{'taskId': $taskId, 'worker': '$workerName', 'price': '$priceProposal'}")
+            
             addNotification(
                 title = "Candidatura Enviada 💼",
                 description = "Candidataste-te com sucesso ao biscato #$taskId com proposta de $priceProposal. Foram descontados 3 créditos.",
@@ -255,6 +279,8 @@ class BiscateViewModel(application: Application) : AndroidViewModel(application)
                     content = "Parabéns! O cliente aceitou a candidatura. Iniciem a conversa para combinar os detalhes físicos do biscato."
                 )
             )
+
+            logApiCall("POST", "/api/v1/jobs/accept", "200 OK", "{'taskId': $taskId, 'candidaturaId': $candidaturaId, 'workerId': $workerId}")
             
             addNotification(
                 title = "Candidatura Aceite! 🤝",
