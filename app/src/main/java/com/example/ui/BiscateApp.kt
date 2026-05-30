@@ -99,6 +99,10 @@ fun BiscateApp(viewModel: BiscateViewModel) {
     var showApplyDialog by remember { mutableStateOf(false) }
     var showRatingDialog by remember { mutableStateOf(false) }
     var showProfileDialog by remember { mutableStateOf(false) }
+    var showNotificationsSheet by remember { mutableStateOf(false) }
+
+    val notifications by viewModel.notifications.collectAsStateWithLifecycle()
+    val isDarkTheme by viewModel.isDarkTheme.collectAsStateWithLifecycle()
 
     // Selected job state
     val selectedTaskId by viewModel.selectedTaskId.collectAsStateWithLifecycle()
@@ -153,6 +157,44 @@ fun BiscateApp(viewModel: BiscateViewModel) {
                     }
                 },
                 actions = {
+                    // Quick Theme Toggle Button
+                    IconButton(
+                        onClick = { viewModel.toggleTheme() },
+                        modifier = Modifier.testTag("theme_toggle_btn")
+                    ) {
+                        Icon(
+                            imageVector = if (isDarkTheme) Icons.Default.WbSunny else Icons.Default.Brightness2,
+                            contentDescription = "Alternar Tema",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+
+                    // Notification Bell Icon with Badge
+                    IconButton(
+                        onClick = { showNotificationsSheet = true },
+                        modifier = Modifier.testTag("notification_bell_btn")
+                    ) {
+                        BadgedBox(
+                            badge = {
+                                val unreadCount = notifications.count { !it.isRead }
+                                if (unreadCount > 0) {
+                                    Badge(
+                                        containerColor = Vermelho,
+                                        contentColor = Color.White
+                                    ) {
+                                        Text("$unreadCount", fontSize = 9.sp)
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = "Central de Notificações",
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                    }
+
                     // Quick Profile Trigger Button
                     IconButton(
                         onClick = { showProfileDialog = true },
@@ -1596,6 +1638,180 @@ fun BiscateApp(viewModel: BiscateViewModel) {
                 }
             }
         }
+    }
+
+    if (showNotificationsSheet) {
+        AlertDialog(
+            onDismissRequest = { showNotificationsSheet = false },
+            title = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.NotificationsActive,
+                            contentDescription = null,
+                            tint = Laranja
+                        )
+                        Text(
+                            text = "Notificações",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = Terra
+                        )
+                    }
+                    if (notifications.isNotEmpty()) {
+                        TextButton(
+                            onClick = { viewModel.clearNotifications() }
+                        ) {
+                            Text("Limpar", color = Laranja, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (notifications.isEmpty()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 40.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.NotificationsNone,
+                                contentDescription = null,
+                                tint = Areia,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Text(
+                                text = "Sem novas notificações",
+                                fontSize = 14.sp,
+                                color = TerraClaro,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "Avisaremos quando houver atualizações nos teus bicos ou propostas.",
+                                fontSize = 11.sp,
+                                color = Areia,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
+                    } else {
+                        // Mark all as read when opening the notification panel
+                        LaunchedEffect(Unit) {
+                            viewModel.markAllAsRead()
+                        }
+
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(notifications.size) { index ->
+                                val notification = notifications[index]
+                                val categoryIcon = when (notification.category) {
+                                    "FINANCEIRO" -> Icons.Default.AccountBalanceWallet
+                                    "TRABALHO" -> Icons.Default.Work
+                                    "CHAT" -> Icons.Default.Chat
+                                    else -> Icons.Default.Info
+                                }
+                                val categoryColor = when (notification.category) {
+                                    "FINANCEIRO" -> Verde
+                                    "TRABALHO" -> Laranja
+                                    "CHAT" -> Color(0xFF0077B6)
+                                    else -> TerraClaro
+                                }
+
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = Branco),
+                                    border = BorderStroke(1.dp, CinzaBorda),
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalAlignment = Alignment.Top
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .background(categoryColor.copy(alpha = 0.12f), RoundedCornerShape(8.dp))
+                                                .padding(8.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = categoryIcon,
+                                                contentDescription = null,
+                                                tint = categoryColor,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = notification.title,
+                                                    color = Terra,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 13.sp,
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                                
+                                                // Unread indicator dot
+                                                if (!notification.isRead) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(6.dp)
+                                                            .background(Vermelho, CircleShape)
+                                                    )
+                                                }
+                                            }
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                text = notification.description,
+                                                color = TerraClaro,
+                                                fontSize = 12.sp,
+                                                lineHeight = 16.sp
+                                            )
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            Text(
+                                                text = "Agora há pouco • Luanda",
+                                                color = Areia,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showNotificationsSheet = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Laranja)
+                ) {
+                    Text("Fechar", fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = Color.White, // Force beautiful White theme container color for notifications!
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 
     // 7. Profile Edit Dialogue

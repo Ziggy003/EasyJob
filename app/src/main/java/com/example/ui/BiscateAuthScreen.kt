@@ -25,7 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.Laranja
+import com.example.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,6 +57,9 @@ fun BiscateAuthScreen(
 
     var isBairroExpanded by remember { mutableStateOf(false) }
     var isSpecialtyExpanded by remember { mutableStateOf(false) }
+    
+    // Recovery Password Dialog State
+    var showRecoverDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -204,6 +207,18 @@ fun BiscateAuthScreen(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                             modifier = Modifier.fillMaxWidth().testTag("login_pin_input")
                         )
+
+                        TextButton(
+                            onClick = { showRecoverDialog = true },
+                            modifier = Modifier.align(Alignment.End).testTag("forgot_pin_btn")
+                        ) {
+                            Text(
+                                text = "Esqueceu o seu PIN de Acesso? Redefinir",
+                                color = Laranja,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
 
                         Button(
                             onClick = {
@@ -527,5 +542,96 @@ fun BiscateAuthScreen(
                 )
             }
         }
+    }
+
+    if (showRecoverDialog) {
+        var recoverContact by remember { mutableStateOf("") }
+        var recoverPin by remember { mutableStateOf("") }
+        var isSubmitting by remember { mutableStateOf(false) }
+
+        AlertDialog(
+            onDismissRequest = { if (!isSubmitting) showRecoverDialog = false },
+            title = {
+                Text(
+                    text = "Recuperar & Redefinir PIN",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Terra
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Text(
+                        text = "Introduza o contacto de telemóvel associado e escolha o seu novo PIN de acesso (mínimo de 4 dígitos).",
+                        fontSize = 12.sp,
+                        color = TerraClaro
+                    )
+
+                    OutlinedTextField(
+                        value = recoverContact,
+                        onValueChange = { recoverContact = it },
+                        label = { Text("Número de Telemóvel") },
+                        placeholder = { Text("Ex: 923456789") },
+                        leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        modifier = Modifier.fillMaxWidth().testTag("recover_phone_input")
+                    )
+
+                    OutlinedTextField(
+                        value = recoverPin,
+                        onValueChange = { recoverPin = it },
+                        label = { Text("Novo Código PIN") },
+                        placeholder = { Text("Ex: 123456") },
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                        modifier = Modifier.fillMaxWidth().testTag("recover_pin_input")
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (recoverContact.isBlank() || recoverPin.isBlank()) {
+                            Toast.makeText(context, "Por favor, preencha todos os campos.", Toast.LENGTH_SHORT).show()
+                        } else {
+                            isSubmitting = true
+                            viewModel.recoverPasswordAndReset(
+                                contact = recoverContact,
+                                newPin = recoverPin,
+                                onSuccess = { successMsg ->
+                                    isSubmitting = false
+                                    showRecoverDialog = false
+                                    contact = recoverContact
+                                    pin = recoverPin
+                                    Toast.makeText(context, successMsg, Toast.LENGTH_LONG).show()
+                                },
+                                onError = { errorMsg ->
+                                    isSubmitting = false
+                                    Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+                                }
+                            )
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Laranja),
+                    enabled = !isSubmitting,
+                    modifier = Modifier.testTag("confirm_recover_btn")
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showRecoverDialog = false },
+                    enabled = !isSubmitting
+                ) {
+                    Text("Cancelar", color = TerraClaro)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 }
